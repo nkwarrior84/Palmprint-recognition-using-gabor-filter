@@ -1,0 +1,56 @@
+clear;
+
+
+% files = dir('C:\Users\Ashok Mehta\Documents\MATLAB\Examples\images\BasicImageImportProcessingAndExportExample\MergedFolderofImages\**\*.bmp');
+% filecount=size({files.name},2);% Total no of jpg files in that folder
+% filenames={files.name}; % all file names taken into a variable
+
+trainData =[];
+
+D = 'C:\Users\Ashok Mehta\Documents\MATLAB\Examples\images\BasicImageImportProcessingAndExportExample\MergedFolderofImages\';
+S = dir(fullfile(D,'*'));
+for i = 1:numel(S)
+    E = dir(fullfile(D,S(i).name,'*.bmp'));
+     for j = 1:numel(E)
+        N = fullfile(D,S(i).name,E(j).name);
+               
+        I = imread(N);
+        I = imresize(I,[128 128]);
+        wavelength = 4;
+        orientation = 90;
+        [mag,phase] = imgaborfilt(I,wavelength,orientation);
+        mag = imresize(mag, [32 32]);
+        phase = imresize(phase, [32 32]);
+        
+        
+        gaborfeatures = [mag(:)];
+        minimum = min(gaborfeatures);
+        gaborfeatures = gaborfeatures - minimum;
+        gaborfeatures = round(gaborfeatures);
+        binaryGaborFeatures = dec2bin(gaborfeatures,10);
+        binaryGaborFeatures =  binaryGaborFeatures - '0';
+        
+        permutationMatrix = eye(numel(gaborfeatures));
+        permutationMatrix = permutationMatrix(randperm(numel(gaborfeatures)),:);
+        
+        secureFeatures = permutationMatrix*binaryGaborFeatures;
+        imageName = strsplit(E(j).name,'_');
+        imageName = imageName{1};
+        intergerNameofImage = str2num(imageName);
+        featureVector = [intergerNameofImage secureFeatures(:)'];
+        trainData = [trainData ; featureVector];
+
+
+     end
+end
+% csvwrite('trainData.csv',trainData)
+Y = trainData(:,1)
+X = trainData(:,2:end)
+Mdl = fitcecoc(X,Y)
+% L = loss(Mdl,X,Y,'BinaryLoss','hamming');
+CVMdl = crossval(Mdl,'KFold',3)
+genError = kfoldLoss(CVMdl)
+
+
+
+
