@@ -23,7 +23,7 @@ Dockerfile:
 
 docker build -t <name_of_your_choice> 
 
-docker run -it <name_of_your_choice> <fingerprint_1> <fingerprint_2>
+docker run -it <name_of_your_choice> <palmprint_1> <palmprint_2>
 
 NOTE: The Palmprints must be in the `/database` folder
 
